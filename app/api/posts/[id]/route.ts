@@ -5,13 +5,11 @@ import prisma from "@/lib/prisma";
 import { reschedulePost, unschedulePost } from "@/lib/queue";
 import { PostFormData } from "@/types/next-auth";
 
-interface Params {
-  params: {
-    id: string;
-  };
-}
-
-export async function PUT(request: NextRequest, { params }: Params) {
+// Correct params type definition for Next.js route handlers
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user?.email) {
@@ -124,7 +122,10 @@ export async function PUT(request: NextRequest, { params }: Params) {
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: Params) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
