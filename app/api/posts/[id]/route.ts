@@ -5,21 +5,17 @@ import prisma from "@/lib/prisma";
 import { reschedulePost, unschedulePost } from "@/lib/queue";
 import { PostFormData } from "@/types/next-auth";
 
-// Correct type for Next.js 15 route handlers
-type RouteContext = {
-  params: {
-    id: string;
-  };
-};
-
-export async function PUT(request: NextRequest, context: RouteContext) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { id } = context.params;
+  const { id } = params;
   console.log("id", id);
 
   try {
@@ -125,14 +121,17 @@ export async function PUT(request: NextRequest, context: RouteContext) {
   }
 }
 
-export async function DELETE(request: NextRequest, context: RouteContext) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { id } = context.params;
+  const { id } = params;
 
   try {
     // Check if the post exists and is still scheduled
