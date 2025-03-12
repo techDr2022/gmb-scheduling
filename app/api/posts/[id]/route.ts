@@ -4,18 +4,16 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { reschedulePost, unschedulePost } from "@/lib/queue";
 import { PostFormData } from "@/types/next-auth";
+import { NextRouteHandler } from "@/types/next-route";
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export const PUT: NextRouteHandler = async (request: NextRequest, context) => {
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { id } = params;
+  const { id } = context.params;
   console.log("id", id);
 
   try {
@@ -24,7 +22,7 @@ export async function PUT(
 
     // Check if the post exists and is still scheduled
     const existingPost = await prisma.post.findUnique({
-      where: { id },
+      where: { id: id as string },
     });
 
     if (!existingPost) {
@@ -94,7 +92,7 @@ export async function PUT(
 
     // Update post in database
     const updatedPost = await prisma.post.update({
-      where: { id },
+      where: { id: id as string },
       data: updateData,
     });
 
@@ -104,7 +102,7 @@ export async function PUT(
       const userEmail = session.user.email;
 
       // Then add it again with the new time and user email
-      await reschedulePost(id, newScheduledDate, userEmail);
+      await reschedulePost(id as string, newScheduledDate, userEmail);
 
       console.log(
         `Post ${id} rescheduled for ${newScheduledDate.toISOString()} by user ${userEmail}`
@@ -119,24 +117,24 @@ export async function PUT(
       { status: 500 }
     );
   }
-}
+};
 
-export async function DELETE(
+export const DELETE: NextRouteHandler = async (
   request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+  context
+) => {
   const session = await getServerSession(authOptions);
 
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { id } = params;
+  const { id } = context.params;
 
   try {
     // Check if the post exists and is still scheduled
     const existingPost = await prisma.post.findUnique({
-      where: { id },
+      where: { id: id as string },
     });
 
     if (!existingPost) {
@@ -153,11 +151,11 @@ export async function DELETE(
     }
 
     // Remove job from BullMQ queue
-    await unschedulePost(id);
+    await unschedulePost(id as string);
 
     // Delete post from database
     await prisma.post.delete({
-      where: { id },
+      where: { id: id as string },
     });
 
     return new NextResponse(null, { status: 204 });
@@ -168,4 +166,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
+};
