@@ -15,6 +15,7 @@ const connection = new IORedis({
   enableReadyCheck: false, // Can help with connection stability
 });
 
+//Test Connection
 // Test connection
 connection.on("connect", () => {
   console.log("Successfully connected to Redis");
