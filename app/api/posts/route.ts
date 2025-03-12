@@ -1,4 +1,4 @@
-// File: src/app/api/posts/route.ts
+// File: app/api/posts/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";

@@ -17,6 +17,7 @@
     "axios": "^1.8.2",
     "bullmq": "^5.41.8",
     "date-fns": "^2.30.0",
+    "dotenv": "^16.4.7",
     "formidable": "^3.5.1",
     "google-auth-library": "^9.15.1",
     "googleapis": "^146.0.0",

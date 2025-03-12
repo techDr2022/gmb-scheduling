@@ -1,3 +1,6 @@
+// lib/queue.ts
+import * as dotenv from "dotenv";
+dotenv.config();
 import { Queue, Worker } from "bullmq";
 import IORedis from "ioredis";
 import prisma from "./prisma";
@@ -35,8 +38,35 @@ export const postQueue = new Queue("gmb-posts", {
   },
 });
 
+// Helper function to refresh access token
+async function refreshUserAccessToken(refreshToken: string): Promise<string> {
+  const url = "https://oauth2.googleapis.com/token";
+  const params = new URLSearchParams({
+    client_id: process.env.GOOGLE_CLIENT_ID as string,
+    client_secret: process.env.GOOGLE_CLIENT_SECRET as string,
+    refresh_token: refreshToken,
+    grant_type: "refresh_token",
+  });
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: params,
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(`Failed to refresh token: ${data.error}`);
+  }
+
+  return data.access_token;
+}
+
 // Initialize the worker and register event handlers
-function initializeWorker() {
+// This will only run on the server side
+if (typeof window === "undefined") {
   const worker = new Worker(
     "gmb-posts",
     async (job) => {
@@ -73,13 +103,15 @@ function initializeWorker() {
         const apiUrl = `https://mybusiness.googleapis.com/v4/accounts/102239766967710116553/locations/${post.location.gmbLocationId}/localPosts`;
 
         // Construct post data with image and call-to-action
-        const postData: {
+        interface PostData {
           summary: string;
           languageCode: string;
           topicType: string;
           media: { mediaFormat: string; sourceUrl: string }[];
           callToAction?: { actionType: string; url?: string };
-        } = {
+        }
+
+        const postData: PostData = {
           summary: post.content,
           languageCode: "en",
           topicType: "STANDARD",
@@ -96,14 +128,14 @@ function initializeWorker() {
         // Add call-to-action if specified
         if (post.ctaType) {
           // Map our CTA types to Google's action types
-          type ActionType =
+          type CTAType =
             | "LEARN_MORE"
             | "BOOK"
             | "ORDER"
             | "BUY"
             | "SIGN_UP"
             | "CALL";
-          const actionTypeMap: Record<ActionType, string> = {
+          const actionTypeMap: Record<CTAType, string> = {
             LEARN_MORE: "LEARN_MORE",
             BOOK: "BOOK",
             ORDER: "ORDER",
@@ -113,8 +145,7 @@ function initializeWorker() {
           };
 
           const callToAction: { actionType: string; url?: string } = {
-            actionType:
-              actionTypeMap[post.ctaType as ActionType] || "LEARN_MORE",
+            actionType: actionTypeMap[post.ctaType as CTAType] || "LEARN_MORE",
           };
 
           // For all action types except CALL, we need a URL
@@ -144,16 +175,12 @@ function initializeWorker() {
           },
           data: postData,
         };
-        console.log(config);
 
         const response = await axios.request(config);
-        console.log(response);
+        console.log(`Response status: ${response.status}`);
 
         console.log(
           `Post created successfully for location: ${post.location.name}`
-        );
-        console.log(
-          `Publishing post to GMB for location: ${post.location.name}`
         );
         console.log(`Post content: ${post.content}`);
         if (post.ctaType) {
@@ -199,13 +226,6 @@ function initializeWorker() {
   worker.on("error", (err) => {
     console.error("Worker error:", err);
   });
-
-  return worker;
-}
-
-// Define worker if running on the server side
-if (typeof window === "undefined") {
-  initializeWorker(); // Initialize worker without storing reference
 }
 
 // Helper function to add a post to the queue
@@ -244,32 +264,6 @@ export async function unschedulePost(postId: string): Promise<void> {
   }
 }
 
-// Helper function to refresh access token
-async function refreshUserAccessToken(refreshToken: string): Promise<string> {
-  const url = "https://oauth2.googleapis.com/token";
-  const params = new URLSearchParams({
-    client_id: process.env.GOOGLE_CLIENT_ID as string,
-    client_secret: process.env.GOOGLE_CLIENT_SECRET as string,
-    refresh_token: refreshToken,
-    grant_type: "refresh_token",
-  });
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: params,
-  });
-
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(`Failed to refresh token: ${data.error}`);
-  }
-
-  return data.access_token;
-}
-
 // Helper function to update a post in the queue
 export async function reschedulePost(
   postId: string,
@@ -304,3 +298,6 @@ export async function checkQueueHealth(): Promise<boolean> {
     return false;
   }
 }
+
+// Export the queue for potential external use
+export { connection };
