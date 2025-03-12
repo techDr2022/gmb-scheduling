@@ -1,7 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import { PrismaClient } from "@prisma/client";
 import { JWT } from "next-auth/jwt";
+import prisma from "./prisma"; // Import from singleton
 
 // Define extended token type
 interface ExtendedJWT extends JWT {
@@ -23,8 +23,6 @@ interface ExtendedSession {
   };
   expires: string;
 }
-
-const prisma = new PrismaClient();
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -142,7 +140,6 @@ async function refreshAccessToken(token: ExtendedJWT): Promise<ExtendedJWT> {
       expiresAt: Math.floor(Date.now() / 1000 + refreshedTokens.expires_in),
     };
   } catch (err) {
-    // Use underscore prefix to indicate intentionally unused variable
     console.error("Error refreshing access token:", err);
     return {
       ...token,
