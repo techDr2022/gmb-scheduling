@@ -1,0 +1,46 @@
+// File: prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String?
+  email        String?  @unique
+  image        String?
+  refreshToken String?  @db.Text
+}
+
+model Location {
+  id            String   @id @default(cuid())
+  gmbLocationId String   @unique
+  name          String
+  phoneNumber   String?  // Make sure this field exists
+  posts         Post[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Post {
+  id          String   @id @default(cuid())
+  locationId  String
+  location    Location @relation(fields: [locationId], references: [id])
+  content     String
+  imageUrl    String?
+  scheduledAt DateTime
+  status      String   @default("scheduled") // scheduled, posted, failed
+  ctaType     String?  // LEARN_MORE, BOOK, ORDER, BUY, SIGN_UP, CALL
+  ctaUrl      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([locationId])
+  @@index([status])
+  @@index([scheduledAt])
+}
