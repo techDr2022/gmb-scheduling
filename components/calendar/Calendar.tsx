@@ -266,7 +266,7 @@ export default function Calendar({ selectedLocation }: CalendarProps) {
                         }`}
                       >
                         <div className="flex justify-between">
-                          <p className="text-sm font-medium">
+                          <p className="text-sm font-medium text-black">
                             {format(parseISO(post.scheduledAt), "h:mm a")}
                           </p>
                           <span
