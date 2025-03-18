@@ -48,7 +48,6 @@ export default function CreatePostModal({
   const [isUploadingImage, setIsUploadingImage] = useState<boolean>(false);
   const [ctaType, setCtaType] = useState<string>("");
   const [ctaUrl, setCtaUrl] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<string>("content");
 
   // Calculate a reasonable default time (rounded to next 15 minutes)
   const now = new Date();
@@ -78,7 +77,6 @@ export default function CreatePostModal({
       setFormErrors({});
       setCtaType("");
       setCtaUrl("");
-      setActiveTab("content");
 
       if (selectedDate) {
         setDateValue(format(selectedDate, "yyyy-MM-dd"));
@@ -241,8 +239,8 @@ export default function CreatePostModal({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto backdrop-blur-sm bg-black/30 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-xl w-full">
-        <div className="flex justify-between items-center p-5 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-indigo-700">
+      <div className="bg-white rounded-xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center p-5 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-indigo-700 sticky top-0 z-10">
           <h3 className="text-xl font-bold text-white flex items-center">
             <CalendarIcon className="h-5 w-5 mr-2" />
             Create Post for{" "}
@@ -257,53 +255,15 @@ export default function CreatePostModal({
           </button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex border-b border-gray-200">
-          <button
-            className={`flex-1 py-3 px-4 font-medium text-sm transition-colors ${
-              activeTab === "content"
-                ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-            onClick={() => setActiveTab("content")}
-          >
-            <div className="flex items-center justify-center">
-              <DocumentTextIcon className="h-5 w-5 mr-2" />
-              Content
-            </div>
-          </button>
-          <button
-            className={`flex-1 py-3 px-4 font-medium text-sm transition-colors ${
-              activeTab === "media"
-                ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-            onClick={() => setActiveTab("media")}
-          >
-            <div className="flex items-center justify-center">
-              <PhotoIcon className="h-5 w-5 mr-2" />
-              Media
-            </div>
-          </button>
-          <button
-            className={`flex-1 py-3 px-4 font-medium text-sm transition-colors ${
-              activeTab === "cta"
-                ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-            onClick={() => setActiveTab("cta")}
-          >
-            <div className="flex items-center justify-center">
-              <LinkIcon className="h-5 w-5 mr-2" />
-              Button
-            </div>
-          </button>
-        </div>
+        <form onSubmit={handleSubmit} className="p-5 space-y-6">
+          {/* Schedule Section */}
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <h4 className="text-base font-medium text-gray-900 mb-3 flex items-center">
+              <CalendarIcon className="h-5 w-5 mr-2 text-blue-600" />
+              Schedule
+            </h4>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-5">
-          {/* Tab content */}
-          <div className={activeTab === "content" ? "block" : "hidden"}>
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label
                   htmlFor="date"
@@ -345,18 +305,20 @@ export default function CreatePostModal({
                 )}
               </div>
             </div>
+          </div>
+
+          {/* Content Section */}
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <h4 className="text-base font-medium text-gray-900 mb-3 flex items-center">
+              <DocumentTextIcon className="h-5 w-5 mr-2 text-blue-600" />
+              Content
+            </h4>
 
             <div>
-              <label
-                htmlFor="content"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Post Content
-              </label>
               <textarea
                 id="content"
-                rows={6}
-                className={`mt-1 block w-full rounded-md border ${
+                rows={5}
+                className={`block w-full rounded-md border ${
                   formErrors.content ? "border-red-300" : "border-gray-300"
                 } py-2 px-3 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm text-black`}
                 placeholder="Share news, offers, or updates about your business..."
@@ -384,14 +346,20 @@ export default function CreatePostModal({
             </div>
           </div>
 
-          <div className={activeTab === "media" ? "block" : "hidden"}>
-            <div className="mb-4">
+          {/* Media Section */}
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <h4 className="text-base font-medium text-gray-900 mb-3 flex items-center">
+              <PhotoIcon className="h-5 w-5 mr-2 text-blue-600" />
+              Media
+            </h4>
+
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Add Image (Optional)
               </label>
 
               {!imagePreview ? (
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md bg-gray-50">
+                <div className="flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md bg-gray-50">
                   <div className="space-y-2 text-center">
                     <PhotoIcon className="mx-auto h-12 w-12 text-gray-400" />
                     <div className="flex text-sm text-gray-700 justify-center">
@@ -416,7 +384,7 @@ export default function CreatePostModal({
                   </div>
                 </div>
               ) : (
-                <div className="mt-2 relative rounded-md overflow-hidden shadow-md">
+                <div className="relative rounded-md overflow-hidden shadow-md">
                   <img
                     src={imagePreview}
                     alt="Preview"
@@ -438,14 +406,20 @@ export default function CreatePostModal({
             </div>
           </div>
 
-          <div className={activeTab === "cta" ? "block" : "hidden"}>
+          {/* CTA Button Section */}
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <h4 className="text-base font-medium text-gray-900 mb-3 flex items-center">
+              <LinkIcon className="h-5 w-5 mr-2 text-blue-600" />
+              Call-to-Action Button
+            </h4>
+
             <div className="space-y-4">
               <div>
                 <label
                   htmlFor="ctaType"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Call to Action Button (Optional)
+                  Button Type (Optional)
                 </label>
                 <select
                   id="ctaType"
@@ -488,7 +462,7 @@ export default function CreatePostModal({
               )}
 
               {ctaType === "CALL" && (
-                <div className="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
+                <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
                   <div className="flex items-center text-sm text-gray-600">
                     <CalendarIcon className="h-5 w-5 mr-2 text-gray-400" />
                     <p>
@@ -502,7 +476,8 @@ export default function CreatePostModal({
             </div>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+          {/* Form Actions */}
+          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 sticky bottom-0 bg-white pb-3">
             <button
               type="button"
               onClick={onClose}
