@@ -2,6 +2,7 @@
 export interface Location {
   id: string;
   gmbLocationId: string;
+  address: string;
   name: string;
   createdAt: Date;
   updatedAt: Date;

@@ -1,5 +1,3 @@
-// File: prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,15 +12,16 @@ model User {
   name         String?
   email        String?  @unique
   image        String?
-  refreshToken String?  @db.Text
+  refreshToken String?  @db.Text // Stores Google refresh token (optional, if per-user)
 }
 
 model Location {
   id            String   @id @default(cuid())
-  gmbLocationId String   @unique
-  name          String
-  phoneNumber   String?  // Make sure this field exists
-  posts         Post[]
+  gmbLocationId String   @unique // Maps to GBP locationId (e.g., from API)
+  name          String   // Location name (e.g., "Store #1")
+  phoneNumber   String?  // Optional phone number from GBP
+  posts         Post[]   // Relation to scheduled posts
+  reviews       Review[] // Relation to reviews
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -31,16 +30,32 @@ model Post {
   id          String   @id @default(cuid())
   locationId  String
   location    Location @relation(fields: [locationId], references: [id])
-  content     String
-  imageUrl    String?
-  scheduledAt DateTime
+  content     String   // Post text
+  imageUrl    String?  // Optional image
+  scheduledAt DateTime // When to post
   status      String   @default("scheduled") // scheduled, posted, failed
   ctaType     String?  // LEARN_MORE, BOOK, ORDER, BUY, SIGN_UP, CALL
-  ctaUrl      String?
+  ctaUrl      String?  // Call-to-action URL
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([locationId])
   @@index([status])
   @@index([scheduledAt])
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  gmbReviewId String   @unique // Maps to GBP reviewId (e.g., "A123")
+  locationId  String
+  location    Location @relation(fields: [locationId], references: [id]) // Links to Location
+  comment     String?  // Review text (optional)
+  rating      Int      // 1-5 stars
+  responded   Boolean  @default(false) // Has a reply been posted?
+  reply       String?  // AI-generated reply
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([locationId])
+  @@index([gmbReviewId])
 }
