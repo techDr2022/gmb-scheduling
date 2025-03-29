@@ -8,6 +8,7 @@ import {
   CalendarIcon,
   LinkIcon,
   DocumentTextIcon,
+  SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { createPost } from "@/services/postService";
 import { uploadImage } from "@/services/uploadService";
@@ -48,6 +49,8 @@ export default function CreatePostModal({
   const [isUploadingImage, setIsUploadingImage] = useState<boolean>(false);
   const [ctaType, setCtaType] = useState<string>("");
   const [ctaUrl, setCtaUrl] = useState<string>("");
+  const [isGeneratingSuggestion, setIsGeneratingSuggestion] =
+    useState<boolean>(false);
 
   // Calculate a reasonable default time (rounded to next 15 minutes)
   const now = new Date();
@@ -237,6 +240,49 @@ export default function CreatePostModal({
     setImagePreview("");
   };
 
+  // Function to generate AI suggestions based on the image
+  const generateAISuggestion = async () => {
+    if (!imageFile) {
+      toast.error("Please upload an image first to get content suggestions");
+      return;
+    }
+
+    setIsGeneratingSuggestion(true);
+
+    try {
+      // First upload the image to get a URL
+      const uploadResult = await uploadImage(imageFile);
+      const imageUrl = uploadResult.fileUrl;
+
+      // Send the image URL to our AI suggestion endpoint
+      const response = await fetch("/api/ai-suggestion", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          imageUrl,
+          ctaType: ctaType || undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate content suggestion");
+      }
+
+      const data = await response.json();
+
+      // Update content with AI suggestion
+      setContent(data.suggestion);
+      toast.success("AI suggestion generated!");
+    } catch (error) {
+      console.error("Error generating AI suggestion:", error);
+      toast.error("Failed to generate suggestion. Please try again.");
+    } finally {
+      setIsGeneratingSuggestion(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto backdrop-blur-sm bg-black/30 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto">
@@ -384,18 +430,33 @@ export default function CreatePostModal({
                   </div>
                 </div>
               ) : (
-                <div className="relative rounded-md overflow-hidden shadow-md">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="h-64 w-full object-cover"
-                  />
+                <div className="space-y-4">
+                  <div className="relative rounded-md overflow-hidden shadow-md">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="h-64 w-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="absolute top-2 right-2 p-1.5 bg-red-600 rounded-full text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-lg"
+                    >
+                      <XMarkIcon className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  {/* AI Suggestion Button */}
                   <button
                     type="button"
-                    onClick={removeImage}
-                    className="absolute top-2 right-2 p-1.5 bg-red-600 rounded-full text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 shadow-lg"
+                    onClick={generateAISuggestion}
+                    disabled={isGeneratingSuggestion}
+                    className="flex items-center justify-center w-full px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
                   >
-                    <XMarkIcon className="h-5 w-5" />
+                    <SparklesIcon className="h-5 w-5 mr-2" />
+                    {isGeneratingSuggestion
+                      ? "Generating..."
+                      : "Generate AI Content Suggestion"}
                   </button>
                 </div>
               )}

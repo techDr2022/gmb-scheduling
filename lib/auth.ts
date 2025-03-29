@@ -3,6 +3,16 @@ import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaClient } from "@prisma/client";
 import { JWT } from "next-auth/jwt";
+import { DefaultSession } from "next-auth";
+
+declare module "next-auth" {
+  interface Session {
+    accessToken?: string;
+    user: {
+      id: string;
+    } & DefaultSession["user"];
+  }
+}
 
 // Define extended token type
 interface ExtendedJWT extends JWT {
