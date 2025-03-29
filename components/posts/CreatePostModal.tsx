@@ -125,9 +125,12 @@ export default function CreatePostModal({
     const files = e.target.files;
     if (files && files[0]) {
       const file = files[0];
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setFormErrors({ ...formErrors, image: "Image size cannot exceed 5MB" });
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setFormErrors({
+          ...formErrors,
+          image: "Image size cannot exceed 10MB",
+        });
         return;
       }
 
@@ -425,7 +428,7 @@ export default function CreatePostModal({
                       </label>
                     </div>
                     <p className="text-xs text-gray-500">
-                      PNG, JPG, GIF up to 5MB
+                      PNG, JPG, GIF up to 10MB
                     </p>
                   </div>
                 </div>
