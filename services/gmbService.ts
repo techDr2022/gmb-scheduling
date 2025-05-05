@@ -53,6 +53,8 @@ export async function fetchAndStoreGMBLocations(session: CustomSession) {
           }
         );
 
+        console.log("locationsResponse", locationsResponse);
+
         if (!locationsResponse.ok) {
           console.error(
             `Failed to fetch locations for account ${accountId}: ${locationsResponse.statusText}`

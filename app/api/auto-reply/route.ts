@@ -147,8 +147,9 @@ async function checkAndReply(token: ExtendedJWT): Promise<void> {
         const exists = await prisma.review.findUnique({
           where: { gmbReviewId: review.reviewId },
         });
+        console.log(review);
 
-        if (!exists && !review.comment?.includes("REPLY")) {
+        if (!exists) {
           const starRatingMap: Record<string, number> = {
             ONE: 1,
             TWO: 2,
@@ -159,7 +160,6 @@ async function checkAndReply(token: ExtendedJWT): Promise<void> {
 
           const rating: number = starRatingMap[review.starRating] || 0;
 
-          console.log(rating);
           const reply: string = await generateReply(
             review.reviewer.displayName,
             review.comment,
@@ -184,6 +184,7 @@ async function checkAndReply(token: ExtendedJWT): Promise<void> {
               locationId: location.id,
               comment: review.comment || "",
               rating,
+              name: review.name,
               responded: true,
               reply,
             },

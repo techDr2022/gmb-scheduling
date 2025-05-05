@@ -47,6 +47,7 @@ model Post {
 model Review {
   id          String   @id @default(cuid())
   gmbReviewId String   @unique // Maps to GBP reviewId (e.g., "A123")
+  name        String?  // Name of the reviewer
   locationId  String
   location    Location @relation(fields: [locationId], references: [id]) // Links to Location
   comment     String?  // Review text (optional)

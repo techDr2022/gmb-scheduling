@@ -125,7 +125,7 @@ export default function CreatePostModal({
     const files = e.target.files;
     if (files && files[0]) {
       const file = files[0];
-      // Validate file size (max 10MB)
+      // Update size limit to 10MB
       if (file.size > 10 * 1024 * 1024) {
         setFormErrors({
           ...formErrors,

@@ -15,6 +15,7 @@ interface Review {
   locationId: string;
   rating: number;
   comment?: string;
+  name?: string;
   reply?: string;
   createdAt: string;
   gmbReviewId?: string;
@@ -79,7 +80,11 @@ export default function ReviewsClient({
     }
 
     try {
-      await updateReply(review.id, editReply, review.gmbReviewId);
+      if (!review.name) {
+        toast.error("Cannot update reply: Missing review name");
+        return;
+      }
+      await updateReply(review.id, editReply, review.name);
 
       // Update local state
       const updatedReviews = initialReviews.map((r) =>
