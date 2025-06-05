@@ -114,7 +114,7 @@ export async function reschedulePost(
     await schedulePost(postId, newScheduledDate, userEmail);
 
     console.log(
-      `Post ${postId} rescheduled for ${newScheduledDate.toISOString()}`
+      `POST ${postId} rescheduled for ${newScheduledDate.toISOString()}`
     );
   } catch (error) {
     console.error(`Failed to reschedule post ${postId}:`, error);
