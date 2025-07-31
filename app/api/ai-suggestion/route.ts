@@ -82,7 +82,7 @@ async function generateContentSuggestion(
     });
 
     const data: OpenAIResponse = await response.json();
-    console.log("AI Suggestion:", data);
+    console.log("AI Suggestion::", data);
     return data.choices[0].message.content.trim();
   } catch (error) {
     console.error("Error generating content suggestion:", error);
