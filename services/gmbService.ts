@@ -6,6 +6,19 @@ interface CustomSession extends Session {
   accessToken?: string;
 }
 
+interface GMBAccount {
+  name: string;
+  type: string;
+}
+
+interface GMBLocation {
+  name: string;
+  title?: string;
+  phoneNumbers?: {
+    primaryPhone?: string;
+  };
+}
+
 export async function fetchAndStoreGMBLocations(session: CustomSession) {
   if (!session.accessToken) {
     throw new Error("No access token available");
@@ -35,7 +48,7 @@ export async function fetchAndStoreGMBLocations(session: CustomSession) {
     }
 
     const accountsData = await accountsResponse.json();
-    const accounts = accountsData.accounts || [];
+    const accounts: GMBAccount[] = accountsData.accounts || [];
 
     console.log("Found accounts:", accounts.length);
     console.log("Access token available:", !!session.accessToken);
@@ -56,6 +69,10 @@ export async function fetchAndStoreGMBLocations(session: CustomSession) {
 
       if (account.type === "LOCATION_GROUP") {
         const accountId = account.name.split("/").pop();
+        if (!accountId) {
+          console.error("Invalid account ID format:", account.name);
+          continue;
+        }
 
         try {
           // Fetch locations for this account
@@ -78,7 +95,7 @@ export async function fetchAndStoreGMBLocations(session: CustomSession) {
           }
 
           const locationsData = await locationsResponse.json();
-          const locations = locationsData.locations || [];
+          const locations: GMBLocation[] = locationsData.locations || [];
 
           console.log(
             `Found ${locations.length} locations for account ${accountId}`
@@ -153,8 +170,12 @@ export async function fetchAndStoreGMBLocations(session: CustomSession) {
   }
 }
 
-async function processLocationWithUpsert(location: any) {
+async function processLocationWithUpsert(location: GMBLocation) {
   const locationId = location.name.split("/").pop();
+  if (!locationId) {
+    throw new Error("Invalid location ID format");
+  }
+
   const locationName = location.title || "Unnamed Location";
 
   return prisma.location.upsert({

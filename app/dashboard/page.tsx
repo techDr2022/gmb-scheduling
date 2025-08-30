@@ -9,7 +9,7 @@ import CustomLocationDropdown from "@/components/locations/CustomLocationDropdow
 import PostsList from "@/components/posts/PostsList";
 import DashboardStats from "@/components/dashboard/DashboardStats";
 import { fetchLocations } from "@/services/locationService";
-import { fetchAndStoreGMBLocations } from "@/services/gmbService";
+
 import toast from "react-hot-toast";
 import { Location } from "@/types/next-auth";
 import {
@@ -84,8 +84,21 @@ export default function Dashboard() {
 
     setIsSyncingGMB(true);
     try {
-      await fetchAndStoreGMBLocations(session);
-      toast.success("GMB locations synced successfully");
+      // Use the API route instead of direct function call to avoid timeout issues
+      const response = await fetch("/api/gmb-sync", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to sync GMB locations");
+      }
+
+      const result = await response.json();
+      toast.success(result.message || "GMB locations synced successfully");
 
       // Fetch updated locations after sync
       const updatedLocations = await fetchLocations();
